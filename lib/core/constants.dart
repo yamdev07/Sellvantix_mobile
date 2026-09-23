@@ -1,6 +1,7 @@
 class AppConstants {
-  // Change this to your VPS URL in production
-  static const String baseUrl = 'http://localhost:8000/api';
+  // 10.0.2.2 = host machine depuis l'émulateur Android
+  // En production VPS : remplacer par https://ton-domaine.com/api
+  static const String baseUrl = 'http://10.0.2.2:8000/api';
 
   // Token storage key
   static const String tokenKey = 'auth_token';
