@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import 'core/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/dashboard_screen.dart';
 import 'screens/splash_screen.dart';
+import 'widgets/app_scaffold.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +57,7 @@ class _BootstrapState extends State<_Bootstrap> {
     await auth.tryAutoLogin();
     if (!mounted) return;
     setState(() {
-      _nextScreen = auth.isLoggedIn ? const DashboardScreen() : const LoginScreen();
+      _nextScreen = auth.isLoggedIn ? const AppScaffold() : const LoginScreen();
     });
   }
 
