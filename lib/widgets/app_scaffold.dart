@@ -21,7 +21,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final name = auth.user?['name'] ?? 'Administrateur';
+    final name = auth.user?.name ?? 'Administrateur';
     final bottom = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(

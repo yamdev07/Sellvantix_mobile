@@ -65,7 +65,7 @@ class _SalesScreenState extends State<SalesScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: AppTheme.error)))
+              ? Center(child: Text(_error!, style: const TextStyle(color: Color(0xFFEF4444))))
               : _sales.isEmpty
                   ? const Center(child: Text('Aucune vente'))
                   : RefreshIndicator(
@@ -111,7 +111,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 child: Text(_payLabel(method), style: TextStyle(fontSize: 11, color: _payColor(method), fontWeight: FontWeight.w600)),
               ),
               const SizedBox(width: 8),
-              Text(s['created_at']?.toString().substring(0, 10) ?? '', style: const TextStyle(fontSize: 11, color: AppTheme.textGrey)),
+              Text(s['created_at']?.toString().substring(0, 10) ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
             ]),
           ],
         ),

@@ -17,8 +17,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.read<AuthProvider>();
-    final name = auth.user?['name'] ?? 'Administrateur';
-    final email = auth.user?['email'] ?? 'admin@boutique.com';
+    final name = auth.user?.name ?? 'Administrateur';
+    final email = auth.user?.email ?? 'admin@boutique.com';
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
