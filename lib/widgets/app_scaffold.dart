@@ -84,35 +84,66 @@ class _Header extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(9),
           ),
-          child: Center(child: CustomPaint(size: const Size(20, 20), painter: _LogoPainter())),
+          child: Center(
+            child: CustomPaint(
+              size: const Size(20, 20),
+              painter: _LogoPainter(),
+            ),
+          ),
         ),
         const SizedBox(width: 10),
         // Shop + user
-        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(
-            'Quincaillerie du Marché',
-            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
-            overflow: TextOverflow.ellipsis,
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Quincaillerie du Marché',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 1),
+              Text(
+                'Administrateur',
+                style: TextStyle(color: Color(0xE0FFFFFF), fontSize: 12),
+              ),
+            ],
           ),
-          SizedBox(height: 1),
-          Text(
-            'Administrateur',
-            style: TextStyle(color: Color(0xE0FFFFFF), fontSize: 12),
-          ),
-        ])),
+        ),
         const SizedBox(width: 6),
         // Sync pill
         Container(
-          height: 30, padding: const EdgeInsets.symmetric(horizontal: 10),
+          height: 30,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(99),
           ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Container(width: 7, height: 7, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
-            const SizedBox(width: 6),
-            const Text('À jour', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-          ]),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 7, height: 7,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'À jour',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(width: 8),
         // Avatar
@@ -120,11 +151,20 @@ class _Header extends StatelessWidget {
           onTap: onAvatarTap,
           child: Container(
             width: 44, height: 44,
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: Center(child: Text(
-              ini,
-              style: const TextStyle(color: AppColors.primaryDk, fontWeight: FontWeight.w800, fontSize: 14),
-            )),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                ini,
+                style: const TextStyle(
+                  color: AppColors.primaryDk,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+            ),
           ),
         ),
       ]),
@@ -132,7 +172,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ── Logo SVG painter ───────────────────────────────────────────────────────────
+// ── Logo SVG painter ──────────────────────────────────────────────────────────
 class _LogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -153,25 +193,37 @@ class _LogoPainter extends CustomPainter {
     path.lineTo(22 * s, 80 * s);
     canvas.drawPath(path, stroke);
 
-    final fill = Paint()..color = AppColors.primary..style = PaintingStyle.fill;
+    final fill = Paint()
+      ..color = AppColors.primary
+      ..style = PaintingStyle.fill;
     final a1 = Path()
-      ..moveTo(76 * s, 8 * s)..lineTo(94 * s, 22 * s)..lineTo(76 * s, 36 * s)..close();
+      ..moveTo(76 * s, 8 * s)
+      ..lineTo(94 * s, 22 * s)
+      ..lineTo(76 * s, 36 * s)
+      ..close();
     canvas.drawPath(a1, fill);
     final a2 = Path()
-      ..moveTo(24 * s, 66 * s)..lineTo(6 * s, 80 * s)..lineTo(24 * s, 94 * s)..close();
+      ..moveTo(24 * s, 66 * s)
+      ..lineTo(6 * s, 80 * s)
+      ..lineTo(24 * s, 94 * s)
+      ..close();
     canvas.drawPath(a2, fill);
   }
 
   @override
-  bool shouldRepaint(_) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ── Tab bar ────────────────────────────────────────────────────────────────────
+// ── Tab bar ───────────────────────────────────────────────────────────────────
 class _TabBar extends StatelessWidget {
   final int current;
   final ValueChanged<int> onTap;
   final double bottomPad;
-  const _TabBar({required this.current, required this.onTap, required this.bottomPad});
+  const _TabBar({
+    required this.current,
+    required this.onTap,
+    required this.bottomPad,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -186,11 +238,31 @@ class _TabBar extends StatelessWidget {
           SizedBox(
             height: 56 + bottomPad,
             child: Row(children: [
-              _Tab(icon: Icons.home_outlined, label: 'Accueil', active: current == 0, onTap: () => onTap(0)),
-              _Tab(icon: Icons.inventory_2_outlined, label: 'Stock', active: current == 1, onTap: () => onTap(1)),
+              _Tab(
+                icon: Icons.home_outlined,
+                label: 'Accueil',
+                active: current == 0,
+                onTap: () => onTap(0),
+              ),
+              _Tab(
+                icon: Icons.inventory_2_outlined,
+                label: 'Stock',
+                active: current == 1,
+                onTap: () => onTap(1),
+              ),
               const SizedBox(width: 72), // FAB placeholder
-              _Tab(icon: Icons.people_outline, label: 'Clients', active: current == 3, onTap: () => onTap(3)),
-              _Tab(icon: Icons.settings_outlined, label: 'Réglages', active: current == 4, onTap: () => onTap(4)),
+              _Tab(
+                icon: Icons.people_outline,
+                label: 'Clients',
+                active: current == 3,
+                onTap: () => onTap(3),
+              ),
+              _Tab(
+                icon: Icons.settings_outlined,
+                label: 'Réglages',
+                active: current == 4,
+                onTap: () => onTap(4),
+              ),
             ]),
           ),
           // Central FAB — raised 30 px
@@ -206,10 +278,18 @@ class _TabBar extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 4),
                     boxShadow: const [
-                      BoxShadow(color: Color(0x73E8590C), blurRadius: 20, offset: Offset(0, 8)),
+                      BoxShadow(
+                        color: Color(0x73E8590C),
+                        blurRadius: 20,
+                        offset: Offset(0, 8),
+                      ),
                     ],
                   ),
-                  child: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 24),
+                  child: const Icon(
+                    Icons.shopping_cart_outlined,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
@@ -225,7 +305,12 @@ class _Tab extends StatelessWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
-  const _Tab({required this.icon, required this.label, required this.active, required this.onTap});
+  const _Tab({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -236,19 +321,29 @@ class _Tab extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: Padding(
           padding: const EdgeInsets.only(top: 6, bottom: 2),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 24, color: color),
-            const SizedBox(height: 3),
-            Text(label, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: color)),
-            const SizedBox(height: 4),
-            Container(
-              width: 18, height: 3,
-              decoration: BoxDecoration(
-                color: active ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(99),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24, color: color),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
               ),
-            ),
-          ]),
+              const SizedBox(height: 4),
+              Container(
+                width: 18, height: 3,
+                decoration: BoxDecoration(
+                  color: active ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

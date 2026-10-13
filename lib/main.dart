@@ -64,7 +64,7 @@ class _BootstrapState extends State<_Bootstrap> {
   @override
   Widget build(BuildContext context) {
     if (_nextScreen == null) {
-      return const Scaffold(backgroundColor: Color(0xFF0A0A16));
+      return const Scaffold(backgroundColor: AppColors.primary);
     }
     return SplashScreen(nextScreen: _nextScreen!);
   }

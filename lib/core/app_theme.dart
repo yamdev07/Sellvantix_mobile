@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
+  // ── Brand ──────────────────────────────────────────────
   static const Color primary    = Color(0xFFE8590C);
   static const Color primaryDk  = Color(0xFFB8440A);
   static const Color primarySft = Color(0xFFFDEBDF);
+
+  // ── Text / Ink ─────────────────────────────────────────
   static const Color ink        = Color(0xFF1A1A2E);
   static const Color textGrey   = Color(0xFF6B7280);
   static const Color textMid    = Color(0xFF4B5160);
   static const Color muted      = Color(0xFF9CA3AF);
+
+  // ── Surfaces & Borders ─────────────────────────────────
   static const Color surface    = Color(0xFFF8F8F8);
   static const Color card       = Color(0xFFFFFFFF);
   static const Color border     = Color(0xFFEEEEEE);
@@ -16,6 +21,17 @@ class AppColors {
   static const Color listBdr    = Color(0xFFF3F4F6);
   static const Color fill       = Color(0xFFF1EEEA);
   static const Color disabled   = Color(0xFFC7C9D1);
+
+  // ── Semantic ───────────────────────────────────────────
+  static const Color error      = Color(0xFFE53935);
+  static const Color success    = Color(0xFF2E7D32);
+  static const Color warning    = Color(0xFFFB8C00);
+  static const Color info       = Color(0xFF1E88E5);
+
+  // ── Semantic backgrounds ───────────────────────────────
+  static const Color errorBg    = Color(0xFFFFEBEE);
+  static const Color successBg  = Color(0xFFE8F5E9);
+  static const Color warningBg  = Color(0xFFFFF3E0);
 }
 
 /// Shorthand for Figtree text style — used across all screens.
@@ -26,7 +42,7 @@ TextStyle fig(double size, FontWeight w, {Color? c, double? ls}) =>
 String fmtAmount(int n) {
   final s = n.toString().replaceAllMapped(
     RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-    (m) => '${m[1]} ',
+    (m) => '${m[1]} ',
   );
   return '$s F';
 }
@@ -40,17 +56,39 @@ String initials(String name) => name
     .join();
 
 class AppTheme {
+  // ── Direct aliases ─────────────────────────────────────
   static const Color primary   = AppColors.primary;
   static const Color secondary = AppColors.ink;
+
+  // ── Semantic aliases ───────────────────────────────────
+  static const Color error     = AppColors.error;
+  static const Color success   = AppColors.success;
+  static const Color warning   = AppColors.warning;
+  static const Color info      = AppColors.info;
+  static const Color textGrey  = AppColors.textGrey;
+  static const Color textMid   = AppColors.textMid;
+  static const Color muted     = AppColors.muted;
+
+  // ── Surface aliases ────────────────────────────────────
+  static const Color surface   = AppColors.surface;
+  static const Color card      = AppColors.card;
+  static const Color border    = AppColors.border;
+  static const Color fill      = AppColors.fill;
 
   static ThemeData get theme => ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       primary: AppColors.primary,
+      error: AppColors.error,
     ),
     scaffoldBackgroundColor: AppColors.surface,
     textTheme: GoogleFonts.figtreeTextTheme(),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.primary,
+      foregroundColor: Colors.white,
+      elevation: 0,
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
@@ -58,6 +96,15 @@ class AppTheme {
         minimumSize: const Size.fromHeight(52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         textStyle: GoogleFonts.figtree(fontSize: 16, fontWeight: FontWeight.w800),
+      ),
+    ),
+    cardTheme: CardTheme(
+      color: AppColors.card,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.border),
       ),
     ),
   );
