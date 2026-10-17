@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
 
-/// Monogramme Sellvantix : « S » orange dans un carré blanc arrondi.
+/// Logo officiel Sellvantix dans un carré blanc arrondi.
 class BrandMark extends StatelessWidget {
   final double size;
   const BrandMark({super.key, this.size = 56});
@@ -19,9 +19,11 @@ class BrandMark extends StatelessWidget {
           BoxShadow(color: Color(0x33000000), blurRadius: 24, offset: Offset(0, 10)),
         ],
       ),
-      child: Text(
-        'S',
-        style: fig(size * 0.58, FontWeight.w900, c: AppColors.primary, ls: -1),
+      child: Image.asset(
+        'assets/images/logo.png',
+        width: size * 0.72,
+        height: size * 0.72,
+        fit: BoxFit.contain,
       ),
     );
   }
