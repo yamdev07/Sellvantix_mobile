@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
+import '../services/sound_service.dart';
 
 const _kProducts = [
   (id: 1, name: 'Ciment 50kg', cat: 'Ciment', price: 4500, stock: 45, emoji: '🏗️'),
@@ -307,6 +308,7 @@ class _PaySheetState extends State<_PaySheet> {
               onPressed: _paying ? null : () async {
                 setState(() => _paying = true);
                 await Future.delayed(const Duration(milliseconds: 800));
+                await SoundService.playCheckout();
                 widget.onPaid();
               },
               child: _paying

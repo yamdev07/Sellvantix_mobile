@@ -1,33 +1,62 @@
 import 'dart:math' show pi;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
+import '../providers/dashboard_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => context.read<DashboardProvider>().fetch());
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-      children: const [
-        _SalesCard(),
-        SizedBox(height: 16),
-        _Row2(),
-        SizedBox(height: 16),
-        _AiTip(),
-        SizedBox(height: 16),
-        _TodoCard(),
-      ],
+    final db = context.watch<DashboardProvider>();
+
+    if (db.loading && db.data == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => context.read<DashboardProvider>().fetch(),
+      child: ColoredBox(
+        color: context.sc,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+          children: [
+            _SalesCard(db: db),
+            const SizedBox(height: 16),
+            _Row2(db: db),
+            const SizedBox(height: 16),
+            _AiTip(db: db),
+            const SizedBox(height: 16),
+            _RecentSales(db: db),
+          ],
+        ),
+      ),
     );
   }
 }
 
 // ── Hero sales card ────────────────────────────────────────────────────────────
 class _SalesCard extends StatelessWidget {
-  const _SalesCard();
+  final DashboardProvider db;
+  const _SalesCard({required this.db});
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    final dayLabel = '${days[now.weekday - 1]} ${now.day}';
+
     return Container(
       padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
       decoration: BoxDecoration(
@@ -47,20 +76,22 @@ class _SalesCard extends StatelessWidget {
           Container(
             height: 28, padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(99)),
-            child: Center(child: Text('Mer 24', style: fig(12, FontWeight.w700, c: Colors.white))),
+            child: Center(child: Text(dayLabel, style: fig(12, FontWeight.w700, c: Colors.white))),
           ),
         ]),
         const SizedBox(height: 6),
-        Text(fmtAmount(184500), style: fig(40, FontWeight.w800, c: Colors.white, ls: -1)),
+        Text(fmtAmount(db.todayRevenue.round()), style: fig(40, FontWeight.w800, c: Colors.white, ls: -1)),
         const SizedBox(height: 2),
         Text('Chiffre d\'affaires du jour', style: fig(13, FontWeight.w500, c: Colors.white70)),
         const SizedBox(height: 18),
         Row(children: [
-          _StatChip(label: '12 Ventes', icon: Icons.receipt_outlined),
+          _StatChip(label: '${db.todaySales} Ventes', icon: Icons.receipt_outlined),
           const SizedBox(width: 10),
-          _StatChip(label: '8 Articles', icon: Icons.inventory_2_outlined),
-          const SizedBox(width: 10),
-          _StatChip(label: '+18%', icon: Icons.trending_up_rounded),
+          _StatChip(label: '${db.totalProducts} Produits', icon: Icons.inventory_2_outlined),
+          if (db.outOfStock > 0) ...[
+            const SizedBox(width: 10),
+            _StatChip(label: '${db.outOfStock} Ruptures', icon: Icons.warning_amber_rounded, red: true),
+          ],
         ]),
       ]),
     );
@@ -70,13 +101,17 @@ class _SalesCard extends StatelessWidget {
 class _StatChip extends StatelessWidget {
   final String label;
   final IconData icon;
-  const _StatChip({required this.label, required this.icon});
+  final bool red;
+  const _StatChip({required this.label, required this.icon, this.red = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 32, padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(99)),
+      decoration: BoxDecoration(
+        color: red ? Colors.red.withOpacity(0.25) : Colors.white24,
+        borderRadius: BorderRadius.circular(99),
+      ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, color: Colors.white, size: 14),
         const SizedBox(width: 5),
@@ -86,50 +121,58 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-// ── Row 2: health ring + top products ─────────────────────────────────────────
+// ── Row 2: stock health + top produits ────────────────────────────────────────
 class _Row2 extends StatelessWidget {
-  const _Row2();
+  final DashboardProvider db;
+  const _Row2({required this.db});
 
   @override
   Widget build(BuildContext context) {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Expanded(child: _HealthCard()),
+      Expanded(child: _HealthCard(db: db)),
       const SizedBox(width: 12),
-      Expanded(child: _TopProducts()),
+      Expanded(child: _LowStockCard(db: db)),
     ]);
   }
 }
 
 class _HealthCard extends StatelessWidget {
-  const _HealthCard();
+  final DashboardProvider db;
+  const _HealthCard({required this.db});
 
   @override
   Widget build(BuildContext context) {
+    final total   = db.totalProducts;
+    final rupture = db.outOfStock;
+    final alerte  = db.lowStock.length;
+    final normal  = (total - rupture - alerte).clamp(0, total);
+    final pct     = total > 0 ? (normal / total) : 1.0;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderC),
       ),
       child: Column(children: [
-        Text('Santé stock', style: fig(13, FontWeight.w700, c: AppColors.ink)),
+        Text('Santé stock', style: fig(13, FontWeight.w700, c: context.ink)),
         const SizedBox(height: 14),
         SizedBox(
           width: 80, height: 80,
-          child: CustomPaint(painter: _RingPainter(0.72), child: Center(
+          child: CustomPaint(painter: _RingPainter(pct), child: Center(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Text('72%', style: fig(17, FontWeight.w800, c: AppColors.ink)),
-              Text('OK', style: fig(11, FontWeight.w600, c: AppColors.textGrey)),
+              Text('${(pct * 100).round()}%', style: fig(17, FontWeight.w800, c: context.ink)),
+              Text('OK', style: fig(11, FontWeight.w600, c: context.textGr)),
             ]),
           )),
         ),
         const SizedBox(height: 14),
-        _RingLegend(color: AppColors.primary, label: 'Normal', value: '18'),
+        _RingLegend(color: AppColors.primary,         label: 'Normal',  value: '$normal'),
         const SizedBox(height: 6),
-        _RingLegend(color: const Color(0xFFF59E0B), label: 'Alerte', value: '5'),
+        _RingLegend(color: const Color(0xFFF59E0B), label: 'Alerte',  value: '$alerte'),
         const SizedBox(height: 6),
-        _RingLegend(color: const Color(0xFFEF4444), label: 'Rupture', value: '2'),
+        _RingLegend(color: const Color(0xFFEF4444), label: 'Rupture', value: '$rupture'),
       ]),
     );
   }
@@ -142,20 +185,19 @@ class _RingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2, cy = size.height / 2, r = size.width / 2 - 7;
-    final bg = Paint()
+    canvas.drawCircle(Offset(cx, cy), r, Paint()
       ..color = AppColors.fill
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
-      ..strokeCap = StrokeCap.round;
-    canvas.drawCircle(Offset(cx, cy), r, bg);
-    final fg = Paint()
-      ..color = AppColors.primary
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.round);
     canvas.drawArc(
       Rect.fromCircle(center: Offset(cx, cy), radius: r),
-      -pi / 2, 2 * pi * progress, false, fg,
+      -pi / 2, 2 * pi * progress, false,
+      Paint()
+        ..color = AppColors.primary
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 10
+        ..strokeCap = StrokeCap.round,
     );
   }
 
@@ -165,8 +207,7 @@ class _RingPainter extends CustomPainter {
 
 class _RingLegend extends StatelessWidget {
   final Color color;
-  final String label;
-  final String value;
+  final String label, value;
   const _RingLegend({required this.color, required this.label, required this.value});
 
   @override
@@ -174,83 +215,78 @@ class _RingLegend extends StatelessWidget {
     return Row(children: [
       Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
       const SizedBox(width: 6),
-      Expanded(child: Text(label, style: fig(12, FontWeight.w600, c: AppColors.textMid))),
-      Text(value, style: fig(12, FontWeight.w700, c: AppColors.ink)),
+      Expanded(child: Text(label, style: fig(12, FontWeight.w600, c: context.textMd))),
+      Text(value, style: fig(12, FontWeight.w700, c: context.ink)),
     ]);
   }
 }
 
-class _TopProducts extends StatelessWidget {
-  const _TopProducts();
-  static const _items = [
-    ('Ciment 50kg', '45 000 F', '8'),
-    ('Fer 12mm', '28 500 F', '5'),
-    ('Peinture 20L', '22 000 F', '3'),
-    ('Colle carrelage', '8 500 F', '12'),
-  ];
+class _LowStockCard extends StatelessWidget {
+  final DashboardProvider db;
+  const _LowStockCard({required this.db});
 
   @override
   Widget build(BuildContext context) {
+    final items = db.lowStock;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderC),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Top produits', style: fig(13, FontWeight.w700, c: AppColors.ink)),
+        Text('Stock critique', style: fig(13, FontWeight.w700, c: context.ink)),
         const SizedBox(height: 14),
-        for (int i = 0; i < _items.length; i++) ...[
-          if (i > 0) const Divider(height: 14, thickness: 1, color: AppColors.listBdr),
-          _TopRow(rank: i + 1, name: _items[i].$1, price: _items[i].$2, qty: _items[i].$3),
-        ],
+        if (items.isEmpty)
+          Center(child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text('Tout est OK ✓', style: fig(13, FontWeight.w600, c: AppColors.success)),
+          ))
+        else
+          for (int i = 0; i < items.length; i++) ...[
+            if (i > 0) Divider(height: 14, thickness: 1, color: context.listBdrC),
+            Row(children: [
+              Container(
+                width: 8, height: 8,
+                decoration: const BoxDecoration(color: Color(0xFFF59E0B), shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                '${items[i]['name']}',
+                style: fig(12, FontWeight.w700, c: context.ink),
+                overflow: TextOverflow.ellipsis,
+              )),
+              Text('${items[i]['stock']}', style: fig(12, FontWeight.w700, c: const Color(0xFFEF4444))),
+            ]),
+          ],
       ]),
     );
   }
 }
 
-class _TopRow extends StatelessWidget {
-  final int rank;
-  final String name, price, qty;
-  const _TopRow({required this.rank, required this.name, required this.price, required this.qty});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: [
-      Container(
-        width: 20, height: 20,
-        decoration: BoxDecoration(
-          color: rank == 1 ? AppColors.primarySft : AppColors.listBdr,
-          shape: BoxShape.circle,
-        ),
-        child: Center(child: Text(
-          '$rank',
-          style: fig(10, FontWeight.w800, c: rank == 1 ? AppColors.primary : AppColors.textGrey),
-        )),
-      ),
-      const SizedBox(width: 8),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(name, style: fig(12, FontWeight.w700, c: AppColors.ink), overflow: TextOverflow.ellipsis),
-        Text(price, style: fig(11, FontWeight.w600, c: AppColors.textGrey)),
-      ])),
-      Text('×$qty', style: fig(12, FontWeight.w700, c: AppColors.primary)),
-    ]);
-  }
-}
-
 // ── AI Tip card ────────────────────────────────────────────────────────────────
 class _AiTip extends StatelessWidget {
-  const _AiTip();
+  final DashboardProvider db;
+  const _AiTip({required this.db});
 
   @override
   Widget build(BuildContext context) {
+    final urgence = db.conseilUrgence;
+    final bgColor = urgence == 'high'
+        ? const Color(0xFFFFF1F0)
+        : AppColors.primarySft;
+    final borderColor = urgence == 'high'
+        ? const Color(0xFFFFCDD2)
+        : const Color(0xFFFFD4BB);
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.primarySft,
+        color: bgColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFFFD4BB)),
+        border: Border.all(color: borderColor),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
@@ -262,81 +298,62 @@ class _AiTip extends StatelessWidget {
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Conseil IA', style: fig(12, FontWeight.w700, c: AppColors.primary)),
           const SizedBox(height: 4),
-          Text(
-            'Le stock de Ciment 50kg sera épuisé dans ~4 jours. Commandez 20 sacs pour éviter la rupture en fin de semaine.',
-            style: fig(13, FontWeight.w500, c: AppColors.ink),
-          ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            child: Container(
+          Text(db.conseilMessage, style: fig(13, FontWeight.w500, c: AppColors.ink)),
+          if (db.conseilAction != null) ...[
+            const SizedBox(height: 10),
+            Container(
               height: 32, padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(99)),
-              child: Center(child: Text('Commander maintenant', style: fig(12, FontWeight.w700, c: Colors.white))),
+              child: Center(child: Text(db.conseilAction!, style: fig(12, FontWeight.w700, c: Colors.white))),
             ),
-          ),
+          ],
         ])),
       ]),
     );
   }
 }
 
-// ── Todo card ──────────────────────────────────────────────────────────────────
-class _TodoCard extends StatelessWidget {
-  const _TodoCard();
-  static const _todos = [
-    (true, 'Valider la livraison du matin'),
-    (true, 'Mettre à jour le prix du fer'),
-    (false, 'Appeler fournisseur Ciment'),
-    (false, 'Préparer facture client Koné'),
-  ];
+// ── Ventes récentes ────────────────────────────────────────────────────────────
+class _RecentSales extends StatelessWidget {
+  final DashboardProvider db;
+  const _RecentSales({required this.db});
 
   @override
   Widget build(BuildContext context) {
+    final sales = db.recentSales;
+    if (sales.isEmpty) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderC),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Text('À faire', style: fig(15, FontWeight.w700, c: AppColors.ink)),
+          Text('Ventes récentes', style: fig(15, FontWeight.w700, c: context.ink)),
           const Spacer(),
-          Text('2/4', style: fig(13, FontWeight.w600, c: AppColors.textGrey)),
+          Text('${sales.length} dernières', style: fig(12, FontWeight.w500, c: context.textGr)),
         ]),
         const SizedBox(height: 14),
-        for (int i = 0; i < _todos.length; i++) ...[
-          if (i > 0) const SizedBox(height: 10),
-          _TodoRow(done: _todos[i].$1, text: _todos[i].$2),
+        for (int i = 0; i < sales.length; i++) ...[
+          if (i > 0) Divider(height: 14, color: context.listBdrC),
+          Row(children: [
+            Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(color: context.fillC, borderRadius: BorderRadius.circular(10)),
+              child: const Icon(Icons.receipt_outlined, size: 18, color: AppColors.primary),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${sales[i]['client']}', style: fig(13, FontWeight.w700, c: context.ink), overflow: TextOverflow.ellipsis),
+              Text('${sales[i]['date']}', style: fig(11, FontWeight.w500, c: context.textGr)),
+            ])),
+            Text(fmtAmount((sales[i]['total'] as num).round()), style: fig(14, FontWeight.w700, c: AppColors.primary)),
+          ]),
         ],
       ]),
     );
-  }
-}
-
-class _TodoRow extends StatelessWidget {
-  final bool done;
-  final String text;
-  const _TodoRow({required this.done, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: [
-      Container(
-        width: 22, height: 22,
-        decoration: BoxDecoration(
-          color: done ? AppColors.primary : Colors.transparent,
-          border: Border.all(color: done ? AppColors.primary : AppColors.disabled, width: 2),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: done ? const Icon(Icons.check_rounded, color: Colors.white, size: 13) : null,
-      ),
-      const SizedBox(width: 10),
-      Expanded(child: Text(
-        text,
-        style: fig(14, FontWeight.w500, c: done ? AppColors.muted : AppColors.ink),
-      )),
-    ]);
   }
 }

@@ -55,6 +55,21 @@ String initials(String name) => name
     .map((w) => w[0].toUpperCase())
     .join();
 
+/// Couleurs dynamiques selon le thème actif — utiliser context.sc, context.cardBg, etc.
+extension ThemeColors on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+
+  Color get sc      => isDark ? const Color(0xFF0F0F1A) : AppColors.surface;
+  Color get cardBg  => isDark ? const Color(0xFF1A1A2E) : AppColors.card;
+  Color get ink     => isDark ? const Color(0xFFEEEEF5) : AppColors.ink;
+  Color get textGr  => isDark ? const Color(0xFF9AA0AB) : AppColors.textGrey;
+  Color get textMd  => isDark ? const Color(0xFFCBCDD8) : AppColors.textMid;
+  Color get mutedC  => isDark ? const Color(0xFF6B7280) : AppColors.muted;
+  Color get borderC => isDark ? const Color(0xFF2A2A3E) : AppColors.border;
+  Color get fillC   => isDark ? const Color(0xFF252538) : AppColors.fill;
+  Color get listBdrC => isDark ? const Color(0xFF1E1E30) : AppColors.listBdr;
+}
+
 class AppTheme {
   // ── Direct aliases ─────────────────────────────────────
   static const Color primary   = AppColors.primary;
@@ -105,6 +120,43 @@ class AppTheme {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: const BorderSide(color: AppColors.border),
+      ),
+    ),
+  );
+
+  static ThemeData get darkTheme => ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.dark,
+      primary: AppColors.primary,
+      error: AppColors.error,
+      surface: const Color(0xFF1A1A2E),
+    ),
+    scaffoldBackgroundColor: const Color(0xFF0F0F1A),
+    textTheme: GoogleFonts.figtreeTextTheme(ThemeData.dark().textTheme),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.primary,
+      foregroundColor: Colors.white,
+      elevation: 0,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        minimumSize: const Size.fromHeight(52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: GoogleFonts.figtree(fontSize: 16, fontWeight: FontWeight.w800),
+      ),
+    ),
+    cardTheme: CardTheme(
+      color: const Color(0xFF1A1A2E),
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFF2A2A3E)),
       ),
     ),
   );

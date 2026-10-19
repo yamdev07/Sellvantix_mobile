@@ -2,6 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
+import '../services/sound_service.dart';
+
+String _roleLabel(String? role) {
+  switch (role) {
+    case 'admin': return 'Administrateur';
+    case 'super_admin': return 'Super Admin';
+    case 'manager': return 'Manager';
+    case 'cashier': return 'Caissier';
+    default: return role ?? '—';
+  }
+}
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -10,17 +22,24 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _notifs = true;
-  bool _sound = false;
-  bool _darkMode = false;
+  bool _sound = true;
+
+  @override
+  void initState() {
+    super.initState();
+    SoundService.isEnabled().then((v) => setState(() => _sound = v));
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.read<AuthProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
     final name = auth.user?.name ?? 'Administrateur';
     final email = auth.user?.email ?? 'admin@boutique.com';
 
-    return ListView(
+    return ColoredBox(
+      color: context.sc,
+      child: ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
       children: [
         // Profile card
@@ -43,9 +62,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(email, style: fig(13, FontWeight.w400, c: Colors.white70)),
               const SizedBox(height: 6),
               Container(
-                height: 24, width: 90,
+                height: 24,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(99)),
-                child: Center(child: Text('Administrateur', style: fig(11, FontWeight.w700, c: Colors.white))),
+                child: Center(child: Text(_roleLabel(auth.user?.role), style: fig(11, FontWeight.w700, c: Colors.white))),
               ),
             ])),
             IconButton(
@@ -58,17 +78,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         // Shop section
         _Section(title: 'Boutique', children: [
-          _SettingsRow(icon: Icons.store_outlined, label: 'Nom de la boutique', value: 'Quincaillerie du Marché'),
-          _SettingsRow(icon: Icons.location_on_outlined, label: 'Adresse', value: 'Abidjan, Côte d\'Ivoire'),
+          _SettingsRow(icon: Icons.store_outlined, label: 'Nom de la boutique', value: auth.user?.tenantName ?? '—'),
           _SettingsRow(icon: Icons.currency_franc_rounded, label: 'Devise', value: 'XOF (F CFA)'),
         ]),
         const SizedBox(height: 16),
 
         // Preferences
         _Section(title: 'Préférences', children: [
-          _ToggleRow(icon: Icons.notifications_outlined, label: 'Notifications', value: _notifs, onChanged: (v) => setState(() => _notifs = v)),
-          _ToggleRow(icon: Icons.volume_up_outlined, label: 'Sons de caisse', value: _sound, onChanged: (v) => setState(() => _sound = v)),
-          _ToggleRow(icon: Icons.dark_mode_outlined, label: 'Mode sombre', value: _darkMode, onChanged: (v) => setState(() => _darkMode = v)),
+          _ToggleRow(icon: Icons.volume_up_outlined, label: 'Sons de caisse', value: _sound, onChanged: (v) {
+            setState(() => _sound = v);
+            SoundService.setEnabled(v);
+          }),
+          _ToggleRow(icon: Icons.dark_mode_outlined, label: 'Mode sombre', value: themeProvider.isDark, onChanged: (v) => themeProvider.setDark(v)),
         ]),
         const SizedBox(height: 16),
 
@@ -113,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ],
-    );
+    ));
   }
 }
 
@@ -131,15 +152,15 @@ class _Section extends StatelessWidget {
       ),
       Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.borderC),
         ),
         child: Column(
           children: List.generate(children.length, (i) => Column(children: [
             children[i],
             if (i < children.length - 1)
-              const Divider(height: 1, indent: 52, color: AppColors.listBdr),
+              Divider(height: 1, indent: 52, color: context.listBdrC),
           ])),
         ),
       ),
@@ -160,14 +181,14 @@ class _SettingsRow extends StatelessWidget {
       child: Row(children: [
         Container(
           width: 34, height: 34,
-          decoration: BoxDecoration(color: AppColors.fill, borderRadius: BorderRadius.circular(9)),
-          child: Icon(icon, size: 18, color: AppColors.textMid),
+          decoration: BoxDecoration(color: context.fillC, borderRadius: BorderRadius.circular(9)),
+          child: Icon(icon, size: 18, color: context.textMd),
         ),
         const SizedBox(width: 12),
-        Expanded(child: Text(label, style: fig(14, FontWeight.w600, c: AppColors.ink))),
-        if (value != null) Text(value!, style: fig(13, FontWeight.w500, c: AppColors.textGrey)),
+        Expanded(child: Text(label, style: fig(14, FontWeight.w600, c: context.ink))),
+        if (value != null) Text(value!, style: fig(13, FontWeight.w500, c: context.textGr)),
         const SizedBox(width: 6),
-        const Icon(Icons.chevron_right_rounded, color: AppColors.muted, size: 20),
+        Icon(Icons.chevron_right_rounded, color: context.mutedC, size: 20),
       ]),
     );
   }
@@ -187,11 +208,11 @@ class _ToggleRow extends StatelessWidget {
       child: Row(children: [
         Container(
           width: 34, height: 34,
-          decoration: BoxDecoration(color: AppColors.fill, borderRadius: BorderRadius.circular(9)),
-          child: Icon(icon, size: 18, color: AppColors.textMid),
+          decoration: BoxDecoration(color: context.fillC, borderRadius: BorderRadius.circular(9)),
+          child: Icon(icon, size: 18, color: context.textMd),
         ),
         const SizedBox(width: 12),
-        Expanded(child: Text(label, style: fig(14, FontWeight.w600, c: AppColors.ink))),
+        Expanded(child: Text(label, style: fig(14, FontWeight.w600, c: context.ink))),
         Switch.adaptive(
           value: value,
           onChanged: onChanged,

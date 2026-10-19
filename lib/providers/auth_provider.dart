@@ -19,10 +19,19 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString(AppConstants.tokenKey);
     final userJson = prefs.getString(AppConstants.userKey);
-    if (token != null && userJson != null) {
-      _user = UserModel.fromJson(jsonDecode(userJson));
+    if (token == null || userJson == null) return;
+
+    // Restaure depuis le cache d'abord (UX rapide)
+    _user = UserModel.fromJson(jsonDecode(userJson));
+    notifyListeners();
+
+    // Puis rafraîchit depuis l'API
+    try {
+      final res = await ApiClient.get('/me');
+      _user = UserModel.fromJson(res['user'] ?? res);
+      await prefs.setString(AppConstants.userKey, jsonEncode(res['user'] ?? res));
       notifyListeners();
-    }
+    } catch (_) {}
   }
 
   Future<bool> login(String email, String password) async {

@@ -37,9 +37,9 @@ class _AppScaffoldState extends State<AppScaffold> {
           ),
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: context.sc,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               clipBehavior: Clip.hardEdge,
               child: IndexedStack(
@@ -79,16 +79,15 @@ class _Header extends StatelessWidget {
       child: Row(children: [
         // Logo box
         Container(
-          width: 32, height: 32,
+          width: 36, height: 36,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(9),
           ),
-          child: Center(
-            child: CustomPaint(
-              size: const Size(20, 20),
-              painter: _LogoPainter(),
-            ),
+          clipBehavior: Clip.hardEdge,
+          child: Image.asset(
+            'assets/images/logo.png',
+            fit: BoxFit.contain,
           ),
         ),
         const SizedBox(width: 10),
@@ -172,47 +171,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ── Logo SVG painter ──────────────────────────────────────────────────────────
-class _LogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final s = size.width / 100;
-    final stroke = Paint()
-      ..color = AppColors.primary
-      ..strokeWidth = 14 * s
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.butt
-      ..strokeJoin = StrokeJoin.miter;
-
-    final path = Path();
-    path.moveTo(78 * s, 22 * s);
-    path.lineTo(52 * s, 22 * s);
-    path.cubicTo(36 * s, 22 * s, 28 * s, 28 * s, 28 * s, 38 * s);
-    path.cubicTo(28 * s, 52 * s, 72 * s, 48 * s, 72 * s, 64 * s);
-    path.cubicTo(72 * s, 76 * s, 62 * s, 80 * s, 48 * s, 80 * s);
-    path.lineTo(22 * s, 80 * s);
-    canvas.drawPath(path, stroke);
-
-    final fill = Paint()
-      ..color = AppColors.primary
-      ..style = PaintingStyle.fill;
-    final a1 = Path()
-      ..moveTo(76 * s, 8 * s)
-      ..lineTo(94 * s, 22 * s)
-      ..lineTo(76 * s, 36 * s)
-      ..close();
-    canvas.drawPath(a1, fill);
-    final a2 = Path()
-      ..moveTo(24 * s, 66 * s)
-      ..lineTo(6 * s, 80 * s)
-      ..lineTo(24 * s, 94 * s)
-      ..close();
-    canvas.drawPath(a2, fill);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 
 // ── Tab bar ───────────────────────────────────────────────────────────────────
 class _TabBar extends StatelessWidget {
@@ -228,43 +186,45 @@ class _TabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.cardBg,
+        border: Border(top: BorderSide(color: context.borderC)),
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          SizedBox(
-            height: 56 + bottomPad,
-            child: Row(children: [
-              _Tab(
-                icon: Icons.home_outlined,
-                label: 'Accueil',
-                active: current == 0,
-                onTap: () => onTap(0),
-              ),
-              _Tab(
-                icon: Icons.inventory_2_outlined,
-                label: 'Stock',
-                active: current == 1,
-                onTap: () => onTap(1),
-              ),
-              const SizedBox(width: 72), // FAB placeholder
-              _Tab(
-                icon: Icons.people_outline,
-                label: 'Clients',
-                active: current == 3,
-                onTap: () => onTap(3),
-              ),
-              _Tab(
-                icon: Icons.settings_outlined,
-                label: 'Réglages',
-                active: current == 4,
-                onTap: () => onTap(4),
-              ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(children: [
+                _Tab(
+                  icon: Icons.home_outlined,
+                  label: 'Accueil',
+                  active: current == 0,
+                  onTap: () => onTap(0),
+                ),
+                _Tab(
+                  icon: Icons.inventory_2_outlined,
+                  label: 'Stock',
+                  active: current == 1,
+                  onTap: () => onTap(1),
+                ),
+                const SizedBox(width: 72), // FAB placeholder
+                _Tab(
+                  icon: Icons.people_outline,
+                  label: 'Clients',
+                  active: current == 3,
+                  onTap: () => onTap(3),
+                ),
+                _Tab(
+                  icon: Icons.settings_outlined,
+                  label: 'Réglages',
+                  active: current == 4,
+                  onTap: () => onTap(4),
+                ),
+              ]),
+              SizedBox(height: bottomPad),
             ]),
-          ),
           // Central FAB — raised 30 px
           Positioned(
             top: -30, left: 0, right: 0,
@@ -314,7 +274,7 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.primary : AppColors.textGrey;
+    final color = active ? AppColors.primary : context.textGr;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
